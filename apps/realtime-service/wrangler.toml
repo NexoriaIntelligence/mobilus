@@ -1,0 +1,25 @@
+name = "mobilus-realtime-service"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+[[durable_objects.bindings]]
+name = "REALTIME_HUB"
+class_name = "RealtimeHub"
+
+[[migrations]]
+tag = "v1"
+new_classes = ["RealtimeHub"]
+
+[[queues.consumers]]
+queue = "realtime-events"
+max_batch_size = 50
+max_batch_timeout = 10
+
+[vars]
+ENVIRONMENT = "development"
+
+[env.production]
+name = "mobilus-realtime-service-prod"
+
+[env.production.vars]
+ENVIRONMENT = "production"

@@ -1,0 +1,37 @@
+{
+  "name": "mobilus",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Mobilus Enterprise GPS Telemetry Platform",
+  "scripts": {
+    "build": "pnpm -r build",
+    "dev": "pnpm -r dev",
+    "test": "pnpm -r test",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck",
+    "clean": "pnpm -r clean && rm -rf node_modules",
+    "audit": "pnpm audit --prod",
+    "security:check": "pnpm audit && pnpm dlx snyk test"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.6.0",
+    "eslint": "^9.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0"
+  },
+  "packageManager": "pnpm@9.0.0",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "lodash": "^4.17.21",
+      "uuid": "^10.0.0",
+      "ws": "^8.17.0",
+      "esbuild": "^0.23.0",
+      "vue-template-compiler": "^3.4.0"
+    }
+  }
+}

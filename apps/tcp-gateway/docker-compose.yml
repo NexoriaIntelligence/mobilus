@@ -1,0 +1,85 @@
+version: '3.8'
+
+services:
+  tcp-gateway:
+    build:
+      context: ../..
+      dockerfile: apps/tcp-gateway/Dockerfile
+    ports:
+      - "5000:5000"   # TCP port for GPS trackers
+      - "3000:3000"   # Admin API
+      - "9090:9090"   # Prometheus metrics
+    environment:
+      - NODE_ENV=production
+      - TCP_PORT=5000
+      - ADMIN_PORT=3000
+      - METRICS_PORT=9090
+      - REDIS_URL=redis://redis:6379
+      - TELEMETRY_API_URL=http://telemetry-ingestion:8787/api/ingest
+      - MAX_CONNECTIONS=50000
+      - SOCKET_TIMEOUT=300000
+      - HEARTBEAT_INTERVAL=30000
+      - LOG_LEVEL=info
+    depends_on:
+      - redis
+    restart: unless-stopped
+    deploy:
+      replicas: 3
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    restart: unless-stopped
+
+  telemetry-ingestion:
+    image: cloudflare/wrangler:latest
+    ports:
+      - "8787:8787"
+    environment:
+      - CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN}
+    volumes:
+      - ../../apps/telemetry-ingestion-worker:/app
+    working_dir: /app
+    command: wrangler dev --port 8787
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9091:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3100:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+volumes:
+  redis_data:
+  prometheus_data:
+  grafana_data:
